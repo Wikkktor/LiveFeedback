@@ -5,8 +5,18 @@ from crud.base import CRUDBase
 from models import Feedback, User
 from schemas.feedback import FeedbackCreate, FeedbackUpdate
 
+from kafka.producer import send_feedback
+from elastic.client import es, index_feedback
+
 
 class CRUDFeedback(CRUDBase[Feedback, FeedbackCreate, FeedbackUpdate]):
+    def search(self, query: str | None = None) -> list[Feedback]:
+        """Search for Feedback by query."""
+        results = es.search(
+            index="feedback-index", body={"query": {"match": {"comment": query}}}
+        )
+        return [hit["_source"] for hit in results["hits"]["hits"]]
+
     def check_permission(
         self, db: Session, current_user: User, feedback_id: int
     ) -> bool:
@@ -25,7 +35,11 @@ class CRUDFeedback(CRUDBase[Feedback, FeedbackCreate, FeedbackUpdate]):
     ) -> Feedback:
         """Create a new Feedback."""
         obj_in.user_id = current_user.id
-        return super().create(db=db, obj_in=obj_in)
+        feedback_db: Feedback = super().create(db=db, obj_in=obj_in)
+
+        send_feedback(feedback=feedback_db)
+        index_feedback(feedback=feedback_db)
+        return
 
     def update(
         self,
@@ -40,7 +54,8 @@ class CRUDFeedback(CRUDBase[Feedback, FeedbackCreate, FeedbackUpdate]):
             db=db, current_user=current_user, feedback_id=feedback_id
         )
         obj_in.user_id = current_user.id
-        return super().update(db=db, db_obj=db_obj, obj_in=obj_in)
+        result = super().update(db=db, db_obj=db_obj, obj_in=obj_in)
+        return result
 
     def remove(self, db: Session, *, feedback_id: int, current_user: User) -> Feedback:
         """Remove a Feedback."""

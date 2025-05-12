@@ -20,12 +20,12 @@ router = APIRouter()
     status_code=status.HTTP_200_OK,
 )
 def get_feedbacks(
-    db: Session = Depends(get_db),
+    query: str | None = None,
 ):
     """
     Retrieve all feedbacks
     """
-    return crud_feedback.get_multi(db=db)
+    return crud_feedback.search(query=query)
 
 
 @router.get(

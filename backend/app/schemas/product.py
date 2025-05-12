@@ -35,3 +35,10 @@ class ProductInDB(ProductBase):
 
     class Config:
         from_attributes = True
+
+
+class ProductElasticSearch(ProductBase):
+    date_created: datetime
+
+    class Config:
+        from_attributes = True

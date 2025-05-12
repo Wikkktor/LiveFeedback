@@ -4,8 +4,22 @@ from db.session import engine
 from fastapi import APIRouter
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
-app = FastAPI(title="LiveFeedBack", version="1.0.1", debug=False)
+from kafka.consumer import KafkaConsumerService
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    kafka_consumer.start()
+    yield
+    # Shutdown
+    kafka_consumer.stop()
+
+
+app: FastAPI = FastAPI(title="LiveFeedBack", version="1.0.1", debug=False)
+kafka_consumer: KafkaConsumerService = KafkaConsumerService()
 
 origins = ["*"]
 
