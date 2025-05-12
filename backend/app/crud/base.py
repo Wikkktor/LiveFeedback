@@ -57,7 +57,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def get_multi(
         self, db: Session, *, offset: int = 0, limit: int = 5000
-    ) -> List[ModelType]:
+    ) -> list[ModelType]:
         """Get multiple objects with offset and limit."""
         return (
             db.query(self.model)
@@ -80,10 +80,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self,
         db: Session,
         *,
-        db_obj: ModelType,
+        db_obj: ModelType | Any,
         obj_in: Union[UpdateSchemaType, Dict[str, Any]],
     ) -> ModelType:
         """Update an object."""
+        if not isinstance(db_obj, ModelType):
+            db_obj = self.get_or_404(db=db, id=db_obj)
         obj_data: Any = jsonable_encoder(db_obj)
         if isinstance(obj_in, dict):
             update_data = obj_in

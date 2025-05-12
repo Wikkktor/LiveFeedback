@@ -1,5 +1,5 @@
 import os
-from typing import Generator, Union
+from typing import Any, Generator
 from core.auth import oauth2_bearer
 from db.session import SessionLocal
 from dotenv import load_dotenv
@@ -22,17 +22,20 @@ def get_db() -> Generator:
 
 
 async def get_current_user(
-    response: Response, token: str = Depends(oauth2_bearer), db: Session = Depends(get_db)
-) -> Union[User, Exception]:
+    response: Response,
+    token: str = Depends(oauth2_bearer),
+    db: Session = Depends(get_db),
+) -> User:
     try:
-        payload = jwt.decode(token, os.getenv("TOKEN"), algorithms=[os.getenv("ALGORYTM")])
+        payload: dict[str, Any] = jwt.decode(
+            token, os.getenv("TOKEN"), algorithms=[os.getenv("ALGORYTM")]
+        )
         user_id: int = payload.get("sub")
         if user_id is None:
             raise get_user_exception()
     except JWTError:
         raise get_user_exception()
 
-    user = db.query(User).filter(User.id == user_id).first()
-    if user is None:
-        raise get_user_exception()
-    return user
+    if user := db.query(User).filter(User.id == user_id).first():
+        return user
+    raise get_user_exception()

@@ -3,10 +3,9 @@ from db.base import Base
 from db.session import engine
 from fastapi import APIRouter
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="FastApi-React", debug=False)
+app = FastAPI(title="LiveFeedBack", version="1.0.1", debug=False)
 
 origins = ["*"]
 
@@ -23,7 +22,6 @@ app.include_router(api_router, prefix="/api")
 app.include_router(root_router)
 
 Base.metadata.create_all(bind=engine)
-app.mount("/media", StaticFiles(directory="media"), name="static")
 
 
 @app.get("/", status_code=200)
