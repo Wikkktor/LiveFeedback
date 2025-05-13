@@ -21,7 +21,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         * `model`: A SQLAlchemy model class
         * `schema`: A Pydantic model (schema) class
         """
-        self.model = model
+        self.model: Type[ModelType] = model
+        self.model_name: str = model.__name__.lower()
 
     def apply_ordering(
         self,

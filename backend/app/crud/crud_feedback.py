@@ -3,18 +3,30 @@ from sqlalchemy.orm import Session
 from core.exceptions import no_permission
 from crud.base import CRUDBase
 from models import Feedback, User
-from schemas.feedback import FeedbackCreate, FeedbackUpdate
+from schemas.feedback import FeedbackCreate, FeedbackUpdate, FeedbackInDB
 
-from kafka.producer import send_feedback
-from elastic.client import es, index_feedback
+from kafka.producer import send_to_kafka
+from elastic import FeedbackElasticClient
 
 
 class CRUDFeedback(CRUDBase[Feedback, FeedbackCreate, FeedbackUpdate]):
     def search(self, query: str | None = None) -> list[Feedback]:
         """Search for Feedback by query."""
-        results = es.search(
-            index="feedback-index", body={"query": {"match": {"comment": query}}}
+        # Create some query for elastic search with fuzzy search
+        body = (
+            {
+                "query": {
+                    "multi_match": {
+                        "query": query,
+                        "fields": ["comment"],  # Adjust fields as needed
+                        "fuzziness": "AUTO",
+                    }
+                }
+            }
+            if query
+            else {}
         )
+        results = FeedbackElasticClient().search_documents(body=body)
         return [hit["_source"] for hit in results["hits"]["hits"]]
 
     def check_permission(
@@ -36,10 +48,14 @@ class CRUDFeedback(CRUDBase[Feedback, FeedbackCreate, FeedbackUpdate]):
         """Create a new Feedback."""
         obj_in.user_id = current_user.id
         feedback_db: Feedback = super().create(db=db, obj_in=obj_in)
-
-        send_feedback(feedback=feedback_db)
-        index_feedback(feedback=feedback_db)
-        return
+        send_to_kafka(
+            model_type=self.model_name,
+            action="create",
+            payload=FeedbackInDB.model_validate(
+                feedback_db, from_attributes=True
+            ).model_dump(),
+        )
+        return feedback_db
 
     def update(
         self,
@@ -54,17 +70,31 @@ class CRUDFeedback(CRUDBase[Feedback, FeedbackCreate, FeedbackUpdate]):
             db=db, current_user=current_user, feedback_id=feedback_id
         )
         obj_in.user_id = current_user.id
-        result = super().update(db=db, db_obj=db_obj, obj_in=obj_in)
-        return result
+        feedback_db: Feedback = super().update(db=db, db_obj=db_obj, obj_in=obj_in)
+        send_to_kafka(
+            model_type=self.model_name,
+            action="update",
+            payload=FeedbackInDB.model_validate(
+                feedback_db, from_attributes=True
+            ).model_dump(),
+        )
+        return feedback_db
 
     def remove(self, db: Session, *, feedback_id: int, current_user: User) -> Feedback:
         """Remove a Feedback."""
-        db_obj: Feedback = self.check_permission(
+        feedback_db: Feedback = self.check_permission(
             db=db, current_user=current_user, feedback_id=feedback_id
         )
-        db.delete(db_obj)
+        db.delete(feedback_db)
         db.commit()
-        return db_obj
+        send_to_kafka(
+            model_type=self.model_name,
+            action="delete",
+            payload=FeedbackInDB.model_validate(
+                feedback_db, from_attributes=True
+            ).model_dump(),
+        )
+        return feedback_db
 
 
 crud_feedback: CRUDFeedback = CRUDFeedback(Feedback)
