@@ -52,7 +52,7 @@ def update_product(
     """
     Update a product by its ID.
     """
-    return crud_product.update(db=db, db_obj=product_id, obj_in=obj_in)
+    return crud_product.update(db=db, product_id=product_id, obj_in=obj_in)
 
 
 @router.delete(
