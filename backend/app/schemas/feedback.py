@@ -26,10 +26,3 @@ class FeedbackInDB(FeedbackBase):
 
     class Config:
         from_attributes = True
-
-
-class FeedBackElasticSearch(FeedbackBase):
-    date_created: datetime
-
-    class Config:
-        from_attributes = True
