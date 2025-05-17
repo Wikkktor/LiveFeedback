@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Generic, Optional, Type, TypeVar, Union
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
@@ -85,7 +85,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         obj_in: Union[UpdateSchemaType, Dict[str, Any]],
     ) -> ModelType:
         """Update an object."""
-        if not isinstance(db_obj, ModelType):
+        if not isinstance(db_obj, self.model):
             db_obj = self.get_or_404(db=db, id=db_obj)
         obj_data: Any = jsonable_encoder(db_obj)
         if isinstance(obj_in, dict):

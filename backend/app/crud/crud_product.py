@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 from crud.base import CRUDBase
 from models import Product
-from schemas.product import ProductCreate, ProductUpdate, ProductElasticSearch
+from schemas.product import ProductCreate, ProductUpdate, ProductInDB
 from elastic import ProductElasticClient
 from kafka.producer import send_to_kafka
 
@@ -34,7 +34,7 @@ class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
         send_to_kafka(
             model_type=self.model_name,
             action="create",
-            payload=ProductElasticSearch.model_validate(
+            payload=ProductInDB.model_validate(
                 product_db, from_attributes=True
             ).model_dump(),
         )
@@ -53,7 +53,7 @@ class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
         send_to_kafka(
             model_type=self.model_name,
             action="update",
-            payload=ProductElasticSearch.model_validate(
+            payload=ProductInDB.model_validate(
                 product_db, from_attributes=True
             ).model_dump(),
         )
@@ -67,7 +67,7 @@ class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
         send_to_kafka(
             model_type=self.model_name,
             action="delete",
-            payload=ProductElasticSearch.model_validate(
+            payload=ProductInDB.model_validate(
                 product_db, from_attributes=True
             ).model_dump(),
         )
