@@ -7,19 +7,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from kafka.consumer import KafkaConsumerService
+from elastic.utils import ensure_indices_exist
+
+kafka_consumer: KafkaConsumerService = KafkaConsumerService()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    ensure_indices_exist()
     kafka_consumer.start()
     yield
     # Shutdown
     kafka_consumer.stop()
 
 
-app: FastAPI = FastAPI(title="LiveFeedBack", version="1.0.1", debug=False)
-kafka_consumer: KafkaConsumerService = KafkaConsumerService()
+app: FastAPI = FastAPI(
+    title="LiveFeedBack", version="1.0.1", debug=False, lifespan=lifespan
+)
 
 origins = ["*"]
 
