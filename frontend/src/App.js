@@ -6,12 +6,11 @@ import ScrollToTop from "./ScrollToTop";
 // CORE
 const Home = React.lazy(() => import("./pages/Core/Home/Index"));
 
-
 // ACCOUNTS
 const Login = React.lazy(() => import("./pages/Accounts/Login/Index.js"));
 const Register = React.lazy(() => import("./pages/Accounts/Register/Index.js"));
-const ResetPassword = React.lazy(() =>
-  import("./pages/Accounts/ForgetPassword/Index.js")
+const ResetPassword = React.lazy(
+  () => import("./pages/Accounts/ForgetPassword/Index.js"),
 );
 
 // UserPanel
@@ -19,7 +18,6 @@ const Panel = React.lazy(() => import("./pages/Panel/Home/Index.js"));
 
 // Admin Panel
 const Admin = React.lazy(() => import("./pages/Admin/Home/Index.js"));
-
 
 function App() {
   const authCtx = useContext(UserContext);
@@ -30,7 +28,7 @@ function App() {
         <Routes>
           {/* CORE */}
           <Route index element={<Home />} />
-        
+
           {/* Accounts */}
           <Route path="/zaloguj-sie" element={<Login />} />
           <Route path="/zarejestruj-sie" element={<Register />} />
@@ -39,7 +37,7 @@ function App() {
           {authCtx.isLoggedIn && (
             <>
               <Route path="/moje-konto" element={<Panel />} />
-              
+
               {/* ADMIN */}
 
               <Route path="/admin" element={<Admin />} />

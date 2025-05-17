@@ -15,7 +15,9 @@ router = APIRouter()
 
 
 @router.post("/login/", status_code=status.HTTP_200_OK, response_model=Token)
-def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
+def login(
+    db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
+) -> dict:
     """
     Getting the JWT for a user with data from oauth2 request body
     :param db: Database connection required

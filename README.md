@@ -34,14 +34,14 @@ To use this template, make sure you have the following installed on your system:
     `DB_HOST = `<br>
     `DB_NAME = ` <br>
     `DATABASE_URL = `<br>
-    
+
 
     -  Create a virtual environment <br>`python3 -m venv venv`
 
     -  Activate the virtual environment <br> `source venv/bin/activate`
 
     - Install the dependencies <br> `pip install -r ../requirements.txt`
-    
+
     - Pre-commit instalation <br> `pre-commit install`
 
     - Run server <br> `uvicorn main:app --reload`

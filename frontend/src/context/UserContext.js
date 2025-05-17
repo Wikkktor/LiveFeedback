@@ -34,12 +34,9 @@ const retrieveStoredToken = () => {
   };
 };
 
-
-
 export const getBoolStorage = (item) => {
-    return localStorage.getItem(item) === 'true';
-}
-
+  return localStorage.getItem(item) === "true";
+};
 
 export const UserProvider = (props) => {
   const tokenData = retrieveStoredToken();
@@ -48,7 +45,6 @@ export const UserProvider = (props) => {
   if (tokenData) {
     initialToken = tokenData.token;
   }
-
 
   const [token, setToken] = useState(initialToken);
 
@@ -79,7 +75,6 @@ export const UserProvider = (props) => {
       logoutTimer = setTimeout(logoutHandler, tokenData.duration);
     }
   }, [tokenData, logoutHandler]);
-
 
   const contextValue = {
     token: token,
