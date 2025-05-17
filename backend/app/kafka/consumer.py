@@ -30,7 +30,7 @@ class KafkaConsumerService:
         }
         return Consumer(consumer_config)
 
-    def _process_message(self, message: dict) -> None:
+    def _process_message(self, message: dict[str, Any]) -> None:
         """Process a single Kafka message."""
         try:
             model_type: str = message["model"]
@@ -38,9 +38,11 @@ class KafkaConsumerService:
             payload: dict[str, Any] = message["payload"]
 
             if client_class := self.elastic_clients.get(model_type):
-                client_instance: BaseElasticClient = client_class()
+                client_instance: FeedbackElasticClient | ProductElasticClient = (
+                    client_class()
+                )
                 if action in {"create", "update"}:
-                    client_instance.index_document(doc_id=payload["id"], body=payload)
+                    client_instance.index_document(payload)
                     logger.info(
                         f"[Elasticsearch] {model_type} {action}: {payload['id']}"
                     )
@@ -74,7 +76,6 @@ class KafkaConsumerService:
                         logger.debug("[Kafka Consumer] Reached end of partition")
                     else:
                         logger.error(f"[Kafka Error] {msg.error()}")
-                        raise KafkaException(msg.error())
                 else:
                     try:
                         message_data = json.loads(msg.value().decode("utf-8"))
