@@ -1,5 +1,5 @@
+from typing import Any
 from elastic.client import BaseElasticClient
-from schemas.product import ProductElasticSearch
 
 
 class ProductElasticClient(BaseElasticClient):
@@ -7,13 +7,13 @@ class ProductElasticClient(BaseElasticClient):
         """
         Initialize the Product Elasticsearch client.
         """
-        super().__init__(index="product-index")
+        super().__init__(index_name="product-index")
 
-    def index_document(self, product: ProductElasticSearch):
+    def index_document(self, product: dict[str, Any]):
         """
         Index or update a product document.
         """
-        return super().index_document(doc_id=product.id, body=product.model_dump_json())
+        return super().index_document(doc_id=product["id"], body=product)
 
     def delete_document(self, product_id: int):
         """
